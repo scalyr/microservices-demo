@@ -145,6 +145,9 @@ public class AdService {
       } catch (StatusRuntimeException e) {
         logger.log(Level.WARNING, "GetAds Failed", e.getStatus());
         return;
+      } catch (RuntimeException e) {
+        logger.log(Level.SEVERE, "Unknown exception seen.  Failing fast and exiting", e);
+        System.exit(-1);
       }
     }
   }
