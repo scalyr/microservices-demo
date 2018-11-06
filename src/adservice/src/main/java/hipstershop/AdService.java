@@ -57,6 +57,13 @@ public final class AdService {
   private static int MAX_ADS_TO_SERVE = 2;
   private Server server;
   private HealthStatusManager healthMgr;
+  private double noAdsPercentage = 0.0;
+  
+  private long startAdsExhausted = -1L;
+  private long endAdsExhausted = -1L;
+
+  private long adSupplyTime = -1L;
+  private long adExhaustionTime = -1L;
 
   private static final AdService service = new AdService();
 
@@ -82,7 +89,21 @@ public final class AdService {
                 System.err.println("*** server shut down");
               }
             });
+    noAdsPercentage = Double.parseDouble(
+        System.getenv("NO_ADS_PERCENTAGE") != null ? System.getenv("NO_ADS_PERCENTAGE") : "0.0");
+    
+    long MILLIS_PER_MINUTE = 60L * 1000L;
+    adSupplyTime = parseLongFromEnvironment("AD_SUPPLY_TIME", 15) * MILLIS_PER_MINUTE;
+    adExhaustionTime = parseLongFromEnvironment("AD_EXHAUSTION_TIME", 5) * MILLIS_PER_MINUTE;
+
+    setAdExhaustionPeriod();
+
     healthMgr.setStatus("", ServingStatus.SERVING);
+  }
+
+  private long parseLongFromEnvironment(String variable, long defaultValue) {
+    String value = System.getenv(variable);
+    return value != null ? Long.parseLong(value) : defaultValue;
   }
 
   private void stop() {
@@ -130,12 +151,17 @@ public final class AdService {
           span.addAnnotation("No Ads found based on context. Constructing random Ads.");
           allAds = service.getRandomAds();
         }
+        logger.info("Returning ads: " + service.summarizeAds(allAds));
+
         AdResponse reply = AdResponse.newBuilder().addAllAds(allAds).build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
       } catch (StatusRuntimeException e) {
         logger.log(Level.WARN, "GetAds Failed", e.getStatus());
         responseObserver.onError(e);
+      } catch (RuntimeException e) {
+        logger.log(Level.FATAL, "Unknown exception seen.  Failing fast and exiting", e);
+        System.exit(-1);
       }
     }
   }
@@ -145,16 +171,57 @@ public final class AdService {
   private Collection<Ad> getAdsByCategory(String category) {
     return adsMap.get(category);
   }
+  
+  private String summarizeAds(List<Ad> ads) {
+    if (ads.size() == 1) {
+      return "[" + getAdProductId(ads.get(0)) + "]";
+    }
+    return "[" + getAdProductId(ads.get(0)) + " ... " +  getAdProductId(ads.get(ads.size() - 1)) + "]";
+  }
+
+  private String getAdProductId(Ad ad) {
+    String url = ad.getRedirectUrl();
+    int lastSlash = url.lastIndexOf("/");
+    if (lastSlash < 0)
+      return url;
+    else
+      return url.substring(lastSlash + 1);
+  }
 
   private static final Random random = new Random();
 
   private List<Ad> getRandomAds() {
     List<Ad> ads = new ArrayList<>(MAX_ADS_TO_SERVE);
+    if (isAdSupplyExhausted()) {
+      return ads;
+    }
     Collection<Ad> allAds = adsMap.values();
     for (int i = 0; i < MAX_ADS_TO_SERVE; i++) {
       ads.add(Iterables.get(allAds, random.nextInt(allAds.size())));
     }
     return ads;
+  }
+
+  private boolean isAdSupplyExhausted() {
+    long currentTime = System.currentTimeMillis();
+    if (currentTime > endAdsExhausted) {
+      setAdExhaustionPeriod();
+    }
+    return ((currentTime >= startAdsExhausted) && (currentTime <= endAdsExhausted));
+  }
+
+  private void setAdExhaustionPeriod() {
+    if (startAdsExhausted < 0) {
+      // This must mean the server has started up recently.  Pick the first exhaustion period.
+      long currentTime = System.currentTimeMillis();
+      // In order to have exhaustion periods persist across server restarts, we have them align on well-known
+      // time boundaries.  In this case, we round down to the nearest adSupplyTime integral.
+      startAdsExhausted = currentTime - (currentTime % adSupplyTime);
+      endAdsExhausted = startAdsExhausted + adExhaustionTime;
+    } else {
+      startAdsExhausted = startAdsExhausted + adSupplyTime;
+      endAdsExhausted = startAdsExhausted + adExhaustionTime;
+    }
   }
 
   private static AdService getInstance() {
