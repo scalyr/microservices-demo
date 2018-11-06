@@ -58,6 +58,7 @@ public class AdService {
   private int MAX_ADS_TO_SERVE = 2;
   private Server server;
   private HealthStatusManager healthMgr;
+  private double noAdsPercentage = 0.0;
 
   static final AdService service = new AdService();
   private void start() throws IOException {
@@ -78,6 +79,8 @@ public class AdService {
                 System.err.println("*** server shut down");
               }
             });
+    noAdsPercentage = Double.parseDouble(
+        System.getenv("NO_ADS_PERCENTAGE") != null ? System.getenv("NO_ADS_PERCENTAGE") : "0.0");
     healthMgr.setStatus("", ServingStatus.SERVING);
   }
 
@@ -134,6 +137,8 @@ public class AdService {
           span.addAnnotation("No Ads found based on context. Constructing random Ads.");
           ads = service.getDefaultAds();
         }
+        logger.info("Returning ads: " + service.summarizeAds(ads));
+
         AdResponse reply = AdResponse.newBuilder().addAllAds(ads).build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
@@ -150,12 +155,31 @@ public class AdService {
     return cacheMap.get(key);
   }
 
+  private String summarizeAds(List<Ad> ads) {
+    if (ads.size() == 1) {
+      return "[" + getAdProductId(ads.get(0)) + "]";
+    }
+    return "[" + getAdProductId(ads.get(0)) + " ... " +  getAdProductId(ads.get(ads.size() - 1)) + "]";
+  }
+
+  private String getAdProductId(Ad ad) {
+    String url = ad.getRedirectUrl();
+    int lastSlash = url.lastIndexOf("/");
+    if (lastSlash < 0)
+      return url;
+    else
+      return url.substring(lastSlash + 1);
+  }
 
   public List<Ad> getDefaultAds() {
     List<Ad> ads = new ArrayList<>(MAX_ADS_TO_SERVE);
+    Random random = new Random();
+    if (random.nextDouble() < noAdsPercentage) {
+      return ads;
+    }
     Object[] keys = cacheMap.keySet().toArray();
     for (int i=0; i<MAX_ADS_TO_SERVE; i++) {
-      ads.add(cacheMap.get(keys[new Random().nextInt(keys.length)]));
+      ads.add(cacheMap.get(keys[random.nextInt(keys.length)]));
     }
     return ads;
   }
