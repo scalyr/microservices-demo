@@ -67,6 +67,13 @@ public final class AdService {
 
   private static final AdService service = new AdService();
 
+  private long startAdsExhausted = -1L;
+  private long endAdsExhausted = -1L;
+
+  private long adSupplyTime = -1L;
+  private long adExhaustionTime = -1L;
+
+  static final AdService service = new AdService();
   private void start() throws IOException {
     int port = Integer.parseInt(System.getenv("PORT"));
     healthMgr = new HealthStatusManager();
