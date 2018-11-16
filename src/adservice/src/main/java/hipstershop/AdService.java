@@ -60,6 +60,12 @@ public class AdService {
   private HealthStatusManager healthMgr;
   private double noAdsPercentage = 0.0;
 
+  private long startAdsExhausted = -1L;
+  private long endAdsExhausted = -1L;
+
+  private long adSupplyTime = -1L;
+  private long adExhaustionTime = -1L;
+
   static final AdService service = new AdService();
   private void start() throws IOException {
     int port = Integer.parseInt(System.getenv("PORT"));
@@ -79,9 +85,19 @@ public class AdService {
                 System.err.println("*** server shut down");
               }
             });
-    noAdsPercentage = Double.parseDouble(
-        System.getenv("NO_ADS_PERCENTAGE") != null ? System.getenv("NO_ADS_PERCENTAGE") : "0.0");
+
+    long MILLIS_PER_MINUTE = 60L * 1000L;
+    adSupplyTime = parseLongFromEnvironment("AD_SUPPLY_TIME", 15) * MILLIS_PER_MINUTE;
+    adExhaustionTime = parseLongFromEnvironment("AD_EXHAUSTION_TIME", 5) * MILLIS_PER_MINUTE;
+
+    setAdExhaustionPeriod();
+
     healthMgr.setStatus("", ServingStatus.SERVING);
+  }
+
+  private long parseLongFromEnvironment(String variable, long defaultValue) {
+    String value = System.getenv(variable);
+    return value != null ? Long.parseLong(value) : defaultValue;
   }
 
   private void stop() {
@@ -176,15 +192,36 @@ public class AdService {
 
   public List<Ad> getDefaultAds() {
     List<Ad> ads = new ArrayList<>(MAX_ADS_TO_SERVE);
-    Random random = new Random();
-    if (random.nextDouble() < noAdsPercentage) {
+    if (isAdSupplyExhausted()) {
       return ads;
     }
     Object[] keys = cacheMap.keySet().toArray();
     for (int i=0; i<MAX_ADS_TO_SERVE; i++) {
-      ads.add(cacheMap.get(keys[random.nextInt(keys.length)]));
+      ads.add(cacheMap.get(keys[new Random().nextInt(keys.length)]));
     }
     return ads;
+  }
+
+  private boolean isAdSupplyExhausted() {
+    long currentTime = System.currentTimeMillis();
+    if (currentTime > endAdsExhausted) {
+      setAdExhaustionPeriod();
+    }
+    return ((currentTime >= startAdsExhausted) && (currentTime <= endAdsExhausted));
+  }
+
+  private void setAdExhaustionPeriod() {
+    if (startAdsExhausted < 0) {
+      // This must mean the server has started up recently.  Pick the first exhaustion period.
+      long currentTime = System.currentTimeMillis();
+      // In order to have exhaustion periods persist across server restarts, we have them align on well-known
+      // time boundaries.  In this case, we round down to the nearest adSupplyTime integral.
+      startAdsExhausted = currentTime - (currentTime % adSupplyTime);
+      endAdsExhausted = startAdsExhausted + adExhaustionTime;
+    } else {
+      startAdsExhausted = startAdsExhausted + adSupplyTime;
+      endAdsExhausted = startAdsExhausted + adExhaustionTime;
+    }
   }
 
   public static AdService getInstance() {
