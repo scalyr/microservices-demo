@@ -16,6 +16,9 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: productcatalogservice
+  labels:
+    app: productcatalogservice
+    env: prod
 spec:
   template:
     metadata:

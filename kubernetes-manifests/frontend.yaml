@@ -17,10 +17,13 @@ kind: Deployment
 metadata:
   name: frontend
 spec:
+  replicas: 3
   template:
     metadata:
       labels:
         app: frontend
+      annotations:
+        log.config.scalyr.com/attributes.parser: myParser
     spec:
       containers:
         - name: server

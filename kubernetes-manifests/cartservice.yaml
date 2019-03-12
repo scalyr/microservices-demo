@@ -16,6 +16,9 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: cartservice
+  labels:
+    app: cartservice
+    env: prod
 spec:
   template:
     metadata:

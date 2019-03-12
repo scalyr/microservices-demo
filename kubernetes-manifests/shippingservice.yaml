@@ -16,6 +16,9 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: shippingservice
+  labels:
+    app: shippingservice
+    env: prod
 spec:
   template:
     metadata:

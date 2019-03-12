@@ -16,6 +16,9 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: checkoutservice
+  labels:
+    app: checkoutservice
+    env: prod
 spec:
   template:
     metadata:

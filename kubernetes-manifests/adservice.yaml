@@ -16,6 +16,9 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: adservice
+  labels:
+    app: adservice
+    env: prod
 spec:
   template:
     metadata:
@@ -31,6 +34,8 @@ spec:
         env:
         - name: PORT
           value: "9555"
+        - name: AD_SUPPLY_TIME
+          value: "60"
         resources:
           requests:
             cpu: 200m

@@ -16,6 +16,9 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: redis-cart
+  labels:
+    app: redis-cart
+    env: prod
 spec:
   template:
     metadata:

@@ -16,6 +16,9 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: loadgenerator
+  labels:
+    app: loadgenerator
+    env: prod
 spec:
   replicas: 1
   template:
