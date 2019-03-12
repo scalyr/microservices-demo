@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: productcatalogservice
+  labels:
+    app: productcatalogservice
+    env: prod
 spec:
-  selector:
-    matchLabels:
-      app: productcatalogservice
   template:
     metadata:
       labels:
@@ -28,21 +28,17 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: productcatalogservice
+        image: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/productcatalogservice
         ports:
         - containerPort: 3550
-        env:
-        - name: PORT
-          value: "3550"
         readinessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:3550"]
+          periodSeconds: 5
+          tcpSocket:
+            port: 3550
         livenessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:3550"]
-#        env:
-#          - name: JAEGER_SERVICE_ADDR
-#            value: "jaeger-collector:14268"
+          periodSeconds: 5
+          tcpSocket:
+            port: 3550
         resources:
           requests:
             cpu: 100m

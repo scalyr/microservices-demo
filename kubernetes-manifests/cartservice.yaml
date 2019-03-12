@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: cartservice
+  labels:
+    app: cartservice
+    env: prod
 spec:
-  selector:
-    matchLabels:
-      app: cartservice
   template:
     metadata:
       labels:
@@ -28,7 +28,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: cartservice
+        image: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/cartservice
         ports:
         - containerPort: 7070
         env:
@@ -48,12 +48,12 @@ spec:
         readinessProbe:
           initialDelaySeconds: 15
           exec:
-            command: ["/bin/grpc_health_probe", "-addr=:7070", "-rpc-timeout=5s"]
+            command: ["/cartservice_probe"]
         livenessProbe:
           initialDelaySeconds: 15
           periodSeconds: 10
           exec:
-            command: ["/bin/grpc_health_probe", "-addr=:7070", "-rpc-timeout=5s"]
+            command: ["/cartservice_probe"]
 ---
 apiVersion: v1
 kind: Service

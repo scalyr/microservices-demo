@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: paymentservice
 spec:
-  selector:
-    matchLabels:
-      app: paymentservice
   template:
     metadata:
       labels:
@@ -28,18 +25,17 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: paymentservice
+        image: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/paymentservice
         ports:
         - containerPort: 50051
-        env:
-        - name: PORT
-          value: "50051"
         readinessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:50051"]
+          periodSeconds: 5
+          tcpSocket:
+            port: 50051
         livenessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:50051"]
+          periodSeconds: 5
+          tcpSocket:
+            port: 50051
         resources:
           requests:
             cpu: 100m

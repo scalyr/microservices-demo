@@ -16,6 +16,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: checkoutservice
+  labels:
+    app: checkoutservice
+    env: prod
 spec:
   selector:
     matchLabels:

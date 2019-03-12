@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: redis-cart
+  labels:
+    app: redis-cart
+    env: prod
 spec:
-  selector:
-    matchLabels:
-      app: redis-cart
   template:
     metadata:
       labels:

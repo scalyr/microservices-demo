@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: recommendationservice
+  labels:
+    app: recommendationservice
+    env: prod
 spec:
-  selector:
-    matchLabels:
-      app: recommendationservice
   template:
     metadata:
       labels:
@@ -28,24 +28,20 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: recommendationservice
+        image: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/recommendationservice
         ports:
         - containerPort: 8080
         readinessProbe:
           periodSeconds: 5
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:8080"]
+          tcpSocket:
+            port: 8080
         livenessProbe:
           periodSeconds: 5
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:8080"]
+          tcpSocket:
+            port: 8080
         env:
-        - name: PORT
-          value: "8080"
         - name: PRODUCT_CATALOG_SERVICE_ADDR
           value: "productcatalogservice:3550"
-        - name: ENABLE_PROFILER
-          value: "0"
         resources:
           requests:
             cpu: 100m

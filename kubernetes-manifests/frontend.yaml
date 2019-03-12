@@ -12,28 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: frontend
 spec:
-  selector:
-    matchLabels:
-      app: frontend
+  replicas: 3
   template:
     metadata:
       labels:
         app: frontend
+      annotations:
+        log.config.scalyr.com/attributes.parser: myParser
     spec:
       containers:
         - name: server
-          image: frontend
+          image: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/frontend
           ports:
           - containerPort: 8080
           readinessProbe:
             initialDelaySeconds: 10
             httpGet:
-              path: "/_healthz"
+              path: "/"
               port: 8080
               httpHeaders:
               - name: "Cookie"
@@ -41,14 +41,12 @@ spec:
           livenessProbe:
             initialDelaySeconds: 10
             httpGet:
-              path: "/_healthz"
+              path: "/"
               port: 8080
               httpHeaders:
               - name: "Cookie"
                 value: "shop_session-id=x-liveness-probe"
           env:
-          - name: PORT
-            value: "8080"
           - name: PRODUCT_CATALOG_SERVICE_ADDR
             value: "productcatalogservice:3550"
           - name: CURRENCY_SERVICE_ADDR
@@ -63,8 +61,6 @@ spec:
             value: "checkoutservice:5050"
           - name: AD_SERVICE_ADDR
             value: "adservice:9555"
-          # - name: JAEGER_SERVICE_ADDR
-          #   value: "jaeger-collector:14268"
           resources:
             requests:
               cpu: 100m
@@ -90,6 +86,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frontend-external
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
 spec:
   type: LoadBalancer
   selector:
