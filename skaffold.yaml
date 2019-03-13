@@ -18,27 +18,27 @@ build:
   tagPolicy:
     gitCommit: {}
   artifacts:
-  - imageName: gcr.io/microservices-demo-app/emailservice
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/emailservice
     workspace: src/emailservice
-  - imageName: gcr.io/microservices-demo-app/productcatalogservice
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/productcatalogservice
     workspace: src/productcatalogservice
-  - imageName: gcr.io/microservices-demo-app/recommendationservice
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/recommendationservice
     workspace: src/recommendationservice
-  - imageName: gcr.io/microservices-demo-app/shippingservice
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/shippingservice
     workspace: src/shippingservice
-  - imageName: gcr.io/microservices-demo-app/checkoutservice
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/checkoutservice
     workspace: src/checkoutservice
-  - imageName: gcr.io/microservices-demo-app/paymentservice
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/paymentservice
     workspace: src/paymentservice
-  - imageName: gcr.io/microservices-demo-app/currencyservice
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/currencyservice
     workspace: src/currencyservice
-  - imageName: gcr.io/microservices-demo-app/cartservice
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/cartservice
     workspace: src/cartservice
-  - imageName: gcr.io/microservices-demo-app/frontend
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/frontend
     workspace: src/frontend
-  - imageName: gcr.io/microservices-demo-app/loadgenerator
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/loadgenerator
     workspace: src/loadgenerator
-  - imageName: gcr.io/microservices-demo-app/adservice
+  - imageName: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/adservice
     workspace: src/adservice
 deploy:
   kubectl:
