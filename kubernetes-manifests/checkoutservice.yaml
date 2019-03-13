@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: server
-          image: checkoutservice
+          image: 137797084791.dkr.ecr.us-east-1.amazonaws.com/scalyr-dev/microservices-demo-app/checkoutservice
           ports:
           - containerPort: 5050
           readinessProbe:
