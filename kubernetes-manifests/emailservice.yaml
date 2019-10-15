@@ -59,4 +59,3 @@ spec:
   - name: grpc
     port: 5000
     targetPort: 8080
-
